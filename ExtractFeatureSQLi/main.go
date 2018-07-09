@@ -11,7 +11,7 @@ var logger = new(log.Logger)
 
 func main() {
 	defer timer.TimeTrack(time.Now(), fmt.Sprintf("Extract features"))
-	apiFile, e := NewLogger(logger, "normal.csv")
+	apiFile, e := NewLogger(logger, "dataset.csv")
 	if e != nil {
 		return
 	}
@@ -19,6 +19,13 @@ func main() {
 	//for _, url := range list {
 	//	fmt.Println(getLength(url))
 	//}
-	processNormal()
-	processMalicious()
+
+	header := "URL,label,length"
+	for _, token := range Tokens {
+		header = fmt.Sprintf("%s,%s", header, token)
+	}
+	logger.Printf("%s\n", header)
+	processNormal("normalTrafficTraining.txt")
+	processMalicious("raw_payload_train.txt")
+	processMalicious("anomalousTrafficTest.txt")
 }

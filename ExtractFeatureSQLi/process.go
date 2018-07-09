@@ -1,14 +1,17 @@
 package main
 
 import (
-	"os"
 	"fmt"
-	"io"
 	"log"
-	"io/ioutil"
 	"regexp"
 	"strings"
+	"io/ioutil"
+	"os"
+	"io"
 )
+
+var Tokens = []string{"SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "DROP", "ALTER", "RENAME", "WHERE", "FROM", "UNION", "NOT", "AND", "OR", "XOR","EXEC",
+	"!", "&&", "||", "--", "#", "<", ">", "<=>", ">=", "<=", "==", "=", "!=", "<<", ">>", "<>", "%", "*", "?", "|", "&", "-", "+"}
 
 func caseInsenstiveContains(a, b string) bool {
 	return strings.Contains(strings.ToUpper(a), strings.ToUpper(b))
@@ -19,65 +22,46 @@ var getURL = regexp.MustCompile("GET (http://.*) HTTP")
 func getLength(s string) int {
 	return len(s)
 }
-func getTableHandling(raw string) string {
+
+func containAndConcat(raw, word, s string) string {
+	bol := caseInsenstiveContains(raw, word)
+	if bol == true {
+		return fmt.Sprintf("%s,1", s)
+	}
+	return fmt.Sprintf("%s,0", s)
+
+}
+
+func getTokenEasy(raw string) string {
+
 	s := ""
 
-	bol := caseInsenstiveContains(raw, "SELECT")
+	bol := caseInsenstiveContains(raw, Tokens[0])
 	if bol == true {
 		s = "1"
 	} else {
 		s = "0"
 	}
-	bol = caseInsenstiveContains(raw, "INSERT")
-	if bol == true {
-		s = fmt.Sprintf("%s,1", s)
-	} else {
-		s = fmt.Sprintf("%s,0", s)
+
+	for i, reserveword := range Tokens {
+		if i == 0 {
+			continue
+		}
+		s = containAndConcat(raw, reserveword, s)
 	}
-	bol = caseInsenstiveContains(raw, "UPDATE")
-	if bol == true {
-		s = fmt.Sprintf("%s,1", s)
-	} else {
-		s = fmt.Sprintf("%s,0", s)
-	}
-	bol = caseInsenstiveContains(raw, "DELETE")
-	if bol == true {
-		s = fmt.Sprintf("%s,1", s)
-	} else {
-		s = fmt.Sprintf("%s,0", s)
-	}
-	bol = caseInsenstiveContains(raw, "CREATE")
-	if bol == true {
-		s = fmt.Sprintf("%s,1", s)
-	} else {
-		s = fmt.Sprintf("%s,0", s)
-	}
-	bol = caseInsenstiveContains(raw, "DROP")
-	if bol == true {
-		s = fmt.Sprintf("%s,1", s)
-	} else {
-		s = fmt.Sprintf("%s,0", s)
-	}
-	bol = caseInsenstiveContains(raw, "AFTER")
-	if bol == true {
-		s = fmt.Sprintf("%s,1", s)
-	} else {
-		s = fmt.Sprintf("%s,0", s)
-	}
-	bol = caseInsenstiveContains(raw, "RENAME")
-	if bol == true {
-		s = fmt.Sprintf("%s,1", s)
-	} else {
-		s = fmt.Sprintf("%s,0", s)
-	}
-	bol = caseInsenstiveContains(raw, "WHERE")
-	if bol == true {
-		s = fmt.Sprintf("%s,1", s)
-	} else {
-		s = fmt.Sprintf("%s,0", s)
-	}
+	s = getCommentTokens(raw, s)
 	return s
 }
+
+func getCommentTokens(raw, s string) string {
+	var re = regexp.MustCompile(`(?m)/\*.*\*/`)
+	check := re.MatchString(raw)
+	if check == true {
+		return fmt.Sprintf("%s,1", s)
+	}
+	return fmt.Sprintf("%s,0", s)
+}
+
 func NewLogger(logger *log.Logger, logFile string) (*os.File, error) {
 	if _, err := os.Stat(logFile); os.IsNotExist(err) {
 		if _, err := os.Create(logFile); err != nil {
@@ -97,10 +81,10 @@ func NewLogger(logger *log.Logger, logFile string) (*os.File, error) {
 	return file, nil
 }
 
-func processNormal() {
-	dat, err := ioutil.ReadFile("normalTrafficTraining.txt")
+func processNormal(filename string) {
+	dat, err := ioutil.ReadFile(filename)
 	if err != nil {
-		log.Fatal("cannot read file")
+		log.Fatal("normal cannot read file")
 	}
 	list := make([]string, 0)
 	raw := string(dat)
@@ -108,14 +92,15 @@ func processNormal() {
 	for _, match := range result {
 		list = append(list, match[1])
 		raw := match[1]
-		logger.Printf("%s,%d,%d,%s", raw, 0, getLength(raw), getTableHandling(raw))
+		logger.Printf("%s,%d,%d,%s", raw, 0, getLength(raw), getTokenEasy(raw))
 	}
+	fmt.Println(len(Tokens))
 }
 
-func processMalicious() {
-	dat, err := ioutil.ReadFile("anomalousTrafficTest.txt")
+func processMalicious(filename string) {
+	dat, err := ioutil.ReadFile(filename)
 	if err != nil {
-		log.Fatal("cannot read file")
+		log.Fatal("malicious cannot read file")
 	}
 	list := make([]string, 0)
 	raw := string(dat)
@@ -123,6 +108,6 @@ func processMalicious() {
 	for _, match := range result {
 		list = append(list, match[1])
 		raw := match[1]
-		logger.Printf("%s,%d,%d,%s", raw, 1, getLength(raw), getTableHandling(raw))
+		logger.Printf("%s,%d,%d,%s", raw, 1, getLength(raw), getTokenEasy(raw))
 	}
 }
