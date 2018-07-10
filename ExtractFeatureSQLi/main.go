@@ -24,8 +24,9 @@ func main() {
 	for _, token := range Tokens {
 		header = fmt.Sprintf("%s,%s", header, token)
 	}
+	header = fmt.Sprintf("%s,/**/", header)
 	logger.Printf("%s\n", header)
 	processNormal("normalTrafficTraining.txt")
 	processMalicious("raw_payload_train.txt")
-	processMalicious("anomalousTrafficTest.txt")
+	//processMalicious("anomalousTrafficTest.txt")
 }

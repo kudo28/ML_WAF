@@ -17,11 +17,12 @@ for header in headers:
 	SQLi_test[header] = number.fit_transform(SQLi_test[header])
 features=headers
 target = "label"
-# print SQLi_test
+print SQLi_test
 features_train, features_test, target_train, target_test = train_test_split(SQLi_test[features],SQLi_test[target],test_size = 0.39,random_state = 54)
 model = GaussianNB()
 model.fit(features_train, target_train)
 pred = model.predict(features_test)
 accuracy = accuracy_score(target_test, pred)
 print accuracy
-# print model.predict([[1,2,0,1]])
+print model.predict([[185, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0] ,[85, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],[43, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],[130, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0]
+])

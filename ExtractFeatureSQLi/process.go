@@ -10,7 +10,7 @@ import (
 	"io"
 )
 
-var Tokens = []string{"SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "DROP", "ALTER", "RENAME", "WHERE", "FROM", "UNION", "NOT", "AND", "OR", "XOR","EXEC",
+var Tokens = []string{"SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "DROP", "ALTER", "RENAME", "WHERE", "FROM", "UNION", "NOT", "AND", "OR", "XOR", "EXEC",
 	"!", "&&", "||", "--", "#", "<", ">", "<=>", ">=", "<=", "==", "=", "!=", "<<", ">>", "<>", "%", "*", "?", "|", "&", "-", "+"}
 
 func caseInsenstiveContains(a, b string) bool {
@@ -97,7 +97,7 @@ func processNormal(filename string) {
 	fmt.Println(len(Tokens))
 }
 
-func processMalicious(filename string) {
+func processMaliciousRaw(filename string) {
 	dat, err := ioutil.ReadFile(filename)
 	if err != nil {
 		log.Fatal("malicious cannot read file")
@@ -109,5 +109,25 @@ func processMalicious(filename string) {
 		list = append(list, match[1])
 		raw := match[1]
 		logger.Printf("%s,%d,%d,%s", raw, 1, getLength(raw), getTokenEasy(raw))
+	}
+}
+func processMalicious(filename string) {
+	dat, err := ioutil.ReadFile(filename)
+	if err != nil {
+		log.Fatal("malicious cannot read file")
+	}
+	list := make([]string, 0)
+	raw := string(dat)
+	result := strings.Split(raw, "\n")
+	//fmt.Println(len(result))
+	//result := getURL.FindAllStringSubmatch(raw, -1)
+	//fmt.Println(result[0])
+	for _, match := range result {
+		list = append(list, match)
+		s := strings.Replace(match, "\"", "doublequote", -1)
+		s = strings.Replace(s, ",", "comma", -1)
+		rawURL := match
+		logger.Printf("%s,%d,%d,%s", s, 1, getLength(rawURL), getTokenEasy(rawURL))
+		//fmt.Println(match)
 	}
 }
